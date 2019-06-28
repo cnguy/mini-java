@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Tag {
     // specials
     End,
@@ -15,19 +15,25 @@ pub enum Tag {
     And,
     Assign,
     Divide,
-    Equal, Unequal,
-    Greater, GreaterEqual,
+    Equal,
+    Unequal,
+    Greater,
+    GreaterEqual,
     Minus,
     Modulo,
     Not,
     Or,
     Plus,
-    Less, LessEqual,
+    Less,
+    LessEqual,
     Times,
     // punctuation
-    OpenBrace, CloseBrace,
-    OpenBracket, CloseBracket,
-    OpenParenthesis, CloseParenthesis,
+    OpenBrace,
+    CloseBrace,
+    OpenBracket,
+    CloseBracket,
+    OpenParenthesis,
+    CloseParenthesis,
     Comma,
     Period,
 }
