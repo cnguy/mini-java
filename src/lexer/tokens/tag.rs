@@ -36,4 +36,5 @@ pub enum Tag {
     CloseParenthesis,
     Comma,
     Period,
+    Semicolon,
 }
