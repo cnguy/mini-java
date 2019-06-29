@@ -10,6 +10,10 @@ impl Diagnostics {
         return Diagnostics { errors: Vec::new() };
     }
 
+    pub fn report(&mut self, error: &'static str) {
+        self.errors.push(error);
+    }
+
     pub fn has_no_errors(&self) -> bool {
         return self.errors.is_empty();
     }
@@ -115,11 +119,18 @@ impl Lexer {
     }
 
     fn read_string_token(&mut self) -> Token {
-        while self.current != '\"' {
+        let mut name_or_identifier = String::new();
+        self.read_next(); // Get past the current ".
+        while !self.end && self.current != '\"' {
+            name_or_identifier.push(self.current);
             self.read_next();
         }
+        if self.current != '\"' {
+            self.diagnostics.report("non-terminated string");
+            return Token::StaticToken { tag: Tag::End };
+        }
         return Token::StringToken {
-            value: "empty string",
+            value: name_or_identifier,
         };
     }
 
@@ -156,6 +167,15 @@ mod tests {
         let mut lexer = Lexer::make(source, diagnostics);
         assert_string_token("abc", lexer.next());
         assert!(lexer.diagnostics.has_no_errors());
+    }
+
+    #[test]
+    fn test_unterminated_string_token() {
+        let source = "\"abc";
+        let diagnostics = Diagnostics::make();
+        let mut lexer = Lexer::make(source, diagnostics);
+        assert_static_token(Tag::End, lexer.next());
+        assert!(!lexer.diagnostics.has_no_errors());
     }
 
     #[test]
@@ -273,7 +293,7 @@ mod tests {
         assert!(actual.is_identifier());
 
         match actual {
-            Token::IdentifierToken { name } => assert!(expected_identifier == name),
+            Token::IdentifierToken { name } => assert_eq!(expected_identifier, name),
             _ => (), // useless
         }
     }
@@ -292,7 +312,7 @@ mod tests {
         assert!(actual.is_string());
 
         match actual {
-            Token::StringToken { value } => assert!(expected_string == value),
+            Token::StringToken { value } => assert_eq!(expected_string, value),
             _ => (), // useless
         };
     }

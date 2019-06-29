@@ -3,6 +3,10 @@ pub struct Diagnostics {
 };
 
 impl Diagnostics {
+    pub fn report(&mut self, error: &'static str) {
+        self.errors.push(error);
+    }
+
     pub fn has_no_errors(&self) -> bool {
         return self.errors.is_empty();
     }

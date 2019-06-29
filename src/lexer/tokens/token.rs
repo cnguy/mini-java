@@ -5,7 +5,7 @@ pub enum Token {
     IdentifierToken { name: &'static str },
     IntegerToken { value: i32 },
     StaticToken { tag: tag::Tag },
-    StringToken { value: &'static str },
+    StringToken { value: String },
 }
 
 impl Token {
