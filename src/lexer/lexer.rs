@@ -150,7 +150,16 @@ mod tests {
     }
 
     #[test]
-    fn test_playground_2() {
+    fn test_string_token() {
+        let source = "\"abc\"";
+        let diagnostics = Diagnostics::make();
+        let mut lexer = Lexer::make(source, diagnostics);
+        assert_string_token("abc", lexer.next());
+        assert!(lexer.diagnostics.has_no_errors());
+    }
+
+    #[test]
+    fn test_integer_token() {
         let source = "123";
         let diagnostics = Diagnostics::make();
         let mut lexer = Lexer::make(source, diagnostics);
