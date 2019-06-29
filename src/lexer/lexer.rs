@@ -16,7 +16,7 @@ impl Diagnostics {
 }
 
 pub struct Lexer {
-    source: &'static str,
+    characters: Vec<char>,
     position: u32,
     current: char,
     end: bool,
@@ -25,12 +25,13 @@ pub struct Lexer {
 
 impl Lexer {
     pub fn make(source: &'static str, diagnostics: Diagnostics) -> Lexer {
+        let characters = source.chars().collect();
         let position = 0;
         let current = '\0';
         let end = false;
 
         return Lexer {
-            source,
+            characters,
             position,
             current,
             end,
@@ -38,17 +39,19 @@ impl Lexer {
         };
     }
 
-    pub fn tokenize(&self, source: &'static str, diagnostics: Diagnostics) {}
-
-    pub fn next(&self) -> Token {
+    pub fn next(&mut self) -> Token {
+        self.read_next();
+        println!("current character: {}", self.current);
         return Token::StaticToken { tag: Tag::End };
     }
 
-    pub fn run(&self) {
-        let int_tok = Token::IntegerToken { value: 0 };
-        println!("{}", int_tok.to_string());
-        println!("{:?}", int_tok);
-        // let static_tok = tokens::static_token::StaticToken { tag: tokens::tag::Tag.Class };
+    fn read_next(&mut self) {
+        if (self.position as usize) > self.characters.len() {
+            println!("Strange error has occurred.");
+        } else {
+            self.current = self.characters[self.position as usize];
+            self.position += 1;
+        }
     }
 }
 
@@ -60,11 +63,22 @@ mod tests {
     use crate::lexer::tokens::tag::Tag;
     use crate::lexer::tokens::token::Token;
 
+    // This is for testing any sort of code. No asserts should be in here.
+    #[test]
+    fn test_playground() {
+        let source = "class /* Comment */ A { }";
+        let diagnostics = Diagnostics::make();
+        let mut lexer = Lexer::make(source, diagnostics);
+        lexer.next();
+        lexer.next();
+        lexer.next();
+    }
+
     #[test]
     fn test_block_comments() {
         let source = "class /* Comment */ A { }";
         let diagnostics = Diagnostics::make();
-        let lexer = Lexer::make(source, diagnostics);
+        let mut lexer = Lexer::make(source, diagnostics);
         assert_static_token(Tag::Class, lexer.next());
         assert_identifier_token("A", lexer.next());
         assert_static_token(Tag::OpenBrace, lexer.next());
@@ -77,7 +91,7 @@ mod tests {
     fn test_line_comments() {
         let source = "class // Comment \r\nA { }";
         let diagnostics = Diagnostics::make();
-        let lexer = Lexer::make(source, diagnostics);
+        let mut lexer = Lexer::make(source, diagnostics);
         assert_static_token(Tag::Class, lexer.next());
         assert_identifier_token("A", lexer.next());
         assert_static_token(Tag::OpenBrace, lexer.next());
@@ -89,7 +103,7 @@ mod tests {
     fn test_all_keywords() {
         let source = "class else extends if instanceof new return while";
         let diagnostics = Diagnostics::make();
-        let lexer = Lexer::make(source, diagnostics);
+        let mut lexer = Lexer::make(source, diagnostics);
         assert_static_token(Tag::Class, lexer.next());
         assert_static_token(Tag::Else, lexer.next());
         assert_static_token(Tag::Extends, lexer.next());
@@ -105,7 +119,7 @@ mod tests {
     fn test_all_operators() {
         let source = "&& = / == != > >= - % ! || + < <= *";
         let diagnostics = Diagnostics::make();
-        let lexer = Lexer::make(source, diagnostics);
+        let mut lexer = Lexer::make(source, diagnostics);
         assert_static_token(Tag::And, lexer.next());
         assert_static_token(Tag::Assign, lexer.next());
         assert_static_token(Tag::Divide, lexer.next());
@@ -128,7 +142,7 @@ mod tests {
     fn test_all_punctuation() {
         let source = "{}[](),.;";
         let diagnostics = Diagnostics::make();
-        let lexer = Lexer::make(source, diagnostics);
+        let mut lexer = Lexer::make(source, diagnostics);
         assert_static_token(Tag::OpenBrace, lexer.next());
         assert_static_token(Tag::CloseBrace, lexer.next());
         assert_static_token(Tag::OpenBracket, lexer.next());
@@ -143,7 +157,7 @@ mod tests {
     fn test_all_value_tokens() {
         let source = "123 45\"ABC!\"12abc34";
         let diagnostics = Diagnostics::make();
-        let lexer = Lexer::make(source, diagnostics);
+        let mut lexer = Lexer::make(source, diagnostics);
         assert_integer_token(123, lexer.next());
         assert_integer_token(45, lexer.next());
         assert_string_token("ABC!", lexer.next());
