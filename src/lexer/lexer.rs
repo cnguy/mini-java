@@ -31,14 +31,19 @@ impl Lexer {
         lexer
     }
 
+    pub fn is_clean(&self) -> bool {
+        self.diagnostics.has_no_errors()
+    }
+
     pub fn next(&mut self) -> Token {
         loop {
             self.skip_blanks();
+
+            println!("current character: {}", self.current);
+
             if self.end {
                 return Token::StaticToken { tag: Tag::End };
             }
-
-            println!("current character: {}", self.current);
 
             if self.current.is_digit(10) {
                 return self.read_integer_token();
@@ -48,14 +53,46 @@ impl Lexer {
                 return self.read_identifier_token();
             }
 
-            if self.current == '\"' {
+            if self.current == '"' {
                 return self.read_string_token();
             }
 
             match self.current {
+                '&' => {
+                    self.read_next();
+                    if self.end || self.current != '&' {
+                        self.diagnostics.report("must be &&");
+                        return Token::StaticToken { tag: Tag::End };
+                    }
+                    Token::StaticToken { tag: Tag::And }
+                }
+                '/' => {
+                    println!("/");
+                    self.read_next();
+                    match self.current {
+                        '/' => self.skip_line_comment(),
+                        '*' => self.skip_block_comment(),
+                        _ => Token::StaticToken { tag: Tag::Divide },
+                    }
+                }
+                '|' => {
+                    self.read_next();
+                    if self.end || self.current != '|' {
+                        self.diagnostics.report("must be ||");
+                        return Token::StaticToken { tag: Tag::End };
+                    }
+                    Token::StaticToken { tag: Tag::Or }
+                }
+                '{' => Token::StaticToken {
+                    tag: Tag::OpenBrace,
+                },
+                '}' => Token::StaticToken {
+                    tag: Tag::CloseBrace,
+                },
                 _ => {
                     println!("static token");
                     self.read_next();
+                    Token::StaticToken { tag: Tag::End }
                 }
             };
         }
@@ -94,30 +131,73 @@ impl Lexer {
     }
 
     fn read_identifier_token(&mut self) -> Token {
-        while self.current.is_alphabetic() {
+        let mut name_or_identifier = String::new();
+
+        while !self.end && self.current.is_alphabetic() {
+            name_or_identifier.push(self.current);
             self.read_next();
         }
 
-        Token::IdentifierToken {
-            name: "empty identifier",
+        println!("name: {}", name_or_identifier);
+
+        if Tag::is_keyword_from_string(&name_or_identifier) {
+            let tag = Tag::to_keyword_from_string(&name_or_identifier);
+            Token::StaticToken { tag }
+        } else {
+            Token::IdentifierToken {
+                name: name_or_identifier.clone(),
+            }
         }
     }
 
     fn read_string_token(&mut self) -> Token {
-        let mut name_or_identifier = String::new();
+        let mut value = String::new();
         self.read_next(); // Get past the current ".
-        while !self.end && self.current != '\"' {
-            name_or_identifier.push(self.current);
+        while !self.end && self.current != '"' {
+            value.push(self.current);
             self.read_next();
         }
-        if self.current != '\"' {
+        if self.current != '"' {
             self.diagnostics.report("non-terminated string");
             return Token::StaticToken { tag: Tag::End };
         }
 
-        Token::StringToken {
-            value: name_or_identifier,
+        Token::StringToken { value }
+    }
+
+    fn skip_line_comment(&mut self) -> Token {
+        while !self.end && (self.current != '\n' || self.current != '\r') {
+            self.read_next();
         }
+
+        self.next()
+    }
+
+    fn skip_block_comment(&mut self) -> Token {
+        println!("SKIP BLOCK COMMENT");
+        self.read_next();
+
+        while !self.end && self.current != '*' {
+            self.read_next();
+        }
+
+        if self.current != '*' {
+            self.diagnostics
+                .report("unterminated block comment. without */");
+            return Token::StaticToken { tag: Tag::End };
+        }
+
+        self.read_next();
+
+        if self.current != '/' {
+            self.diagnostics
+                .report("unterminated block comment. without /");
+            return Token::StaticToken { tag: Tag::End };
+        }
+
+        self.read_next();
+
+        self.next()
     }
 
     fn increment_position(&mut self) {
@@ -133,77 +213,103 @@ mod tests {
     use crate::lexer::tokens::tag::Tag;
     use crate::lexer::tokens::token::Token;
 
+    fn lexer(source: &'static str) -> Lexer {
+        let diagnostics = Diagnostics::make();
+        Lexer::make(source, diagnostics)
+    }
+
     #[test]
     fn test_playground_1() {
-        let source = "class A { }";
-        let diagnostics = Diagnostics::make();
-        let mut lexer = Lexer::make(source, diagnostics);
+        let mut lexer = lexer("class A { }");
         assert_static_token(Tag::Class, lexer.next());
         assert_identifier_token("A", lexer.next());
         assert_static_token(Tag::OpenBrace, lexer.next());
         assert_static_token(Tag::CloseBrace, lexer.next());
         assert_static_token(Tag::End, lexer.next());
-        assert!(lexer.diagnostics.has_no_errors());
+        assert!(lexer.is_clean());
     }
 
     #[test]
     fn test_string_token() {
-        let source = "\"abc\"";
-        let diagnostics = Diagnostics::make();
-        let mut lexer = Lexer::make(source, diagnostics);
+        let mut lexer = lexer("\"abc\"");
         assert_string_token("abc", lexer.next());
-        assert!(lexer.diagnostics.has_no_errors());
+        assert!(lexer.is_clean());
     }
 
     #[test]
     fn test_unterminated_string_token() {
-        let source = "\"abc";
-        let diagnostics = Diagnostics::make();
-        let mut lexer = Lexer::make(source, diagnostics);
+        let mut lexer = lexer("\"abc");
         assert_static_token(Tag::End, lexer.next());
-        assert!(!lexer.diagnostics.has_no_errors());
+        assert!(!lexer.is_clean());
+    }
+
+    #[test]
+    fn test_single_ampersand() {
+        let mut lexer = lexer("&");
+        assert_static_token(Tag::End, lexer.next());
+        assert!(!lexer.is_clean());
+    }
+
+    #[test]
+    fn test_single_line() {
+        let mut lexer = lexer("|");
+        assert_static_token(Tag::End, lexer.next());
+        assert!(!lexer.is_clean());
+    }
+
+    #[test]
+    fn test_unterminated_block_comment_1() {
+        let mut lexer = lexer("/*");
+        assert_static_token(Tag::End, lexer.next());
+        assert!(!lexer.is_clean());
+    }
+
+    #[test]
+    fn test_unterminated_block_comment_2() {
+        let mut lexer = lexer("/**");
+        assert_static_token(Tag::End, lexer.next());
+        assert!(!lexer.is_clean());
+    }
+
+    #[test]
+    fn test_simple_block_comment() {
+        let mut lexer = lexer("/**/");
+        assert_static_token(Tag::End, lexer.next());
+        assert!(lexer.is_clean());
     }
 
     #[test]
     fn test_integer_token() {
-        let source = "123";
-        let diagnostics = Diagnostics::make();
-        let mut lexer = Lexer::make(source, diagnostics);
+        let mut lexer = lexer("123");
         assert_integer_token(123, lexer.next());
         assert_static_token(Tag::End, lexer.next());
-        assert!(lexer.diagnostics.has_no_errors());
+        assert!(lexer.is_clean());
     }
 
     #[test]
     fn test_block_comments() {
-        let source = "class /* Comment */ A { }";
-        let diagnostics = Diagnostics::make();
-        let mut lexer = Lexer::make(source, diagnostics);
+        let mut lexer = lexer("class /* Comment */ A { }");
         assert_static_token(Tag::Class, lexer.next());
         assert_identifier_token("A", lexer.next());
         assert_static_token(Tag::OpenBrace, lexer.next());
         assert_static_token(Tag::CloseBrace, lexer.next());
         assert_static_token(Tag::End, lexer.next());
-        assert!(lexer.diagnostics.has_no_errors());
+        assert!(lexer.is_clean());
     }
 
     #[test]
     fn test_line_comments() {
-        let source = "class // Comment \r\nA { }";
-        let diagnostics = Diagnostics::make();
-        let mut lexer = Lexer::make(source, diagnostics);
+        let mut lexer = lexer("class // Comment \r\nA { }");
         assert_static_token(Tag::Class, lexer.next());
         assert_identifier_token("A", lexer.next());
         assert_static_token(Tag::OpenBrace, lexer.next());
         assert_static_token(Tag::CloseBrace, lexer.next());
-        assert!(lexer.diagnostics.has_no_errors());
+        assert!(lexer.is_clean());
     }
 
     #[test]
     fn test_all_keywords() {
-        let source = "class else extends if instanceof new return while";
-        let diagnostics = Diagnostics::make();
-        let mut lexer = Lexer::make(source, diagnostics);
+        let mut lexer = lexer("class else extends if instanceof new return while");
         assert_static_token(Tag::Class, lexer.next());
         assert_static_token(Tag::Else, lexer.next());
         assert_static_token(Tag::Extends, lexer.next());
@@ -212,14 +318,12 @@ mod tests {
         assert_static_token(Tag::New, lexer.next());
         assert_static_token(Tag::Return, lexer.next());
         assert_static_token(Tag::While, lexer.next());
-        assert!(lexer.diagnostics.has_no_errors());
+        assert!(lexer.is_clean());
     }
 
     #[test]
     fn test_all_operators() {
-        let source = "&& = / == != > >= - % ! || + < <= *";
-        let diagnostics = Diagnostics::make();
-        let mut lexer = Lexer::make(source, diagnostics);
+        let mut lexer = lexer("&& = / == != > >= - % ! || + < <= *");
         assert_static_token(Tag::And, lexer.next());
         assert_static_token(Tag::Assign, lexer.next());
         assert_static_token(Tag::Divide, lexer.next());
@@ -235,14 +339,12 @@ mod tests {
         assert_static_token(Tag::Less, lexer.next());
         assert_static_token(Tag::LessEqual, lexer.next());
         assert_static_token(Tag::Times, lexer.next());
-        assert!(lexer.diagnostics.has_no_errors());
+        assert!(lexer.is_clean());
     }
 
     #[test]
     fn test_all_punctuation() {
-        let source = "{}[](),.;";
-        let diagnostics = Diagnostics::make();
-        let mut lexer = Lexer::make(source, diagnostics);
+        let mut lexer = lexer("{}[](),.;");
         assert_static_token(Tag::OpenBrace, lexer.next());
         assert_static_token(Tag::CloseBrace, lexer.next());
         assert_static_token(Tag::OpenBracket, lexer.next());
@@ -250,20 +352,18 @@ mod tests {
         assert_static_token(Tag::Comma, lexer.next());
         assert_static_token(Tag::Period, lexer.next());
         assert_static_token(Tag::Semicolon, lexer.next());
-        assert!(lexer.diagnostics.has_no_errors());
+        assert!(lexer.is_clean());
     }
 
     #[test]
     fn test_all_value_tokens() {
-        let source = "123 45\"ABC!\"12abc34";
-        let diagnostics = Diagnostics::make();
-        let mut lexer = Lexer::make(source, diagnostics);
+        let mut lexer = lexer("123 45\"ABC!\"12abc34");
         assert_integer_token(123, lexer.next());
         assert_integer_token(45, lexer.next());
         assert_string_token("ABC!", lexer.next());
         assert_integer_token(12, lexer.next());
         assert_identifier_token("abc34", lexer.next());
-        assert!(lexer.diagnostics.has_no_errors());
+        assert!(lexer.is_clean());
     }
 
     fn assert_static_token(expected_tag: Tag, actual: Token) {

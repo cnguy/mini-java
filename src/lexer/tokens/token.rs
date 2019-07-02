@@ -2,7 +2,7 @@ use crate::lexer::tokens::tag;
 
 #[derive(Debug)]
 pub enum Token {
-    IdentifierToken { name: &'static str },
+    IdentifierToken { name: String },
     IntegerToken { value: i32 },
     StaticToken { tag: tag::Tag },
     StringToken { value: String },

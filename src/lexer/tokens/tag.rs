@@ -40,8 +40,8 @@ pub enum Tag {
 }
 
 impl Tag {
-    pub fn is_keyword_from_string(identifier: &'static str) -> bool {
-        match identifier {
+    pub fn is_keyword_from_string(identifier: &String) -> bool {
+        match identifier.as_ref() {
             "class" => true,
             "else" => true,
             "extends" => true,
@@ -51,6 +51,20 @@ impl Tag {
             "return" => true,
             "while" => true,
             _ => false,
+        }
+    }
+
+    pub fn to_keyword_from_string(identifier: &String) -> Tag {
+        match identifier.as_ref() {
+            "class" => Tag::Class,
+            "else" => Tag::Else,
+            "extends" => Tag::Extends,
+            "if" => Tag::If,
+            "instanceof" => Tag::InstanceOf,
+            "new" => Tag::New,
+            "return" => Tag::Return,
+            "while" => Tag::While,
+            _ => Tag::End,
         }
     }
 
