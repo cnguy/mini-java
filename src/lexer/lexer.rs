@@ -42,6 +42,7 @@ impl Lexer {
             println!("current character: {}", self.current);
 
             if self.end {
+                println!("done");
                 return Token::StaticToken { tag: Tag::End };
             }
 
@@ -64,16 +65,16 @@ impl Lexer {
                         self.diagnostics.report("must be &&");
                         return Token::StaticToken { tag: Tag::End };
                     }
-                    Token::StaticToken { tag: Tag::And }
+                    return Token::StaticToken { tag: Tag::And };
                 }
                 '/' => {
                     println!("/");
                     self.read_next();
-                    match self.current {
+                    return match self.current {
                         '/' => self.skip_line_comment(),
                         '*' => self.skip_block_comment(),
                         _ => Token::StaticToken { tag: Tag::Divide },
-                    }
+                    };
                 }
                 '|' => {
                     self.read_next();
@@ -81,18 +82,24 @@ impl Lexer {
                         self.diagnostics.report("must be ||");
                         return Token::StaticToken { tag: Tag::End };
                     }
-                    Token::StaticToken { tag: Tag::Or }
+                    return Token::StaticToken { tag: Tag::Or };
                 }
-                '{' => Token::StaticToken {
-                    tag: Tag::OpenBrace,
-                },
-                '}' => Token::StaticToken {
-                    tag: Tag::CloseBrace,
-                },
+                '{' => {
+                    self.read_next();
+                    return Token::StaticToken {
+                        tag: Tag::OpenBrace,
+                    };
+                }
+                '}' => {
+                    self.read_next();
+                    return Token::StaticToken {
+                        tag: Tag::CloseBrace,
+                    };
+                }
                 _ => {
                     println!("static token");
                     self.read_next();
-                    Token::StaticToken { tag: Tag::End }
+                    return Token::StaticToken { tag: Tag::End };
                 }
             };
         }
@@ -138,8 +145,6 @@ impl Lexer {
             self.read_next();
         }
 
-        println!("name: {}", name_or_identifier);
-
         if Tag::is_keyword_from_string(&name_or_identifier) {
             let tag = Tag::to_keyword_from_string(&name_or_identifier);
             Token::StaticToken { tag }
@@ -174,7 +179,6 @@ impl Lexer {
     }
 
     fn skip_block_comment(&mut self) -> Token {
-        println!("SKIP BLOCK COMMENT");
         self.read_next();
 
         while !self.end && self.current != '*' {
