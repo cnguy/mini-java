@@ -41,7 +41,7 @@ pub enum Tag {
 
 impl Tag {
     pub fn is_keyword_from_string(identifier: &'static str) -> bool {
-        return match identifier {
+        match identifier {
             "class" => true,
             "else" => true,
             "extends" => true,
@@ -51,13 +51,13 @@ impl Tag {
             "return" => true,
             "while" => true,
             _ => false,
-        };
+        }
     }
 
     // is_keyword documents clearly what's a keyword. :)
     #[warn(unused_code)]
     pub fn is_keyword(&self) -> bool {
-        return match self {
+        match self {
             Tag::Class => true,
             Tag::Else => true,
             Tag::Extends => true,
@@ -67,6 +67,6 @@ impl Tag {
             Tag::Return => true,
             Tag::While => true,
             _ => false,
-        };
+        }
     }
 }

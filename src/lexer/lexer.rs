@@ -1,4 +1,5 @@
 use crate::shared::diagnostics::Diagnostics;
+
 use crate::lexer::tokens::tag::Tag;
 use crate::lexer::tokens::token::Token;
 
@@ -27,7 +28,7 @@ impl Lexer {
 
         lexer.read_next();
 
-        return lexer;
+        lexer
     }
 
     pub fn next(&mut self) -> Token {
@@ -59,7 +60,7 @@ impl Lexer {
             };
         }
 
-        return Token::StaticToken { tag: Tag::End };
+        // Token::StaticToken { tag: Tag::End };
     }
 
     fn read_next(&mut self) {
@@ -86,19 +87,20 @@ impl Lexer {
             // println!("{}", number);
             self.read_next();
         }
-        println!("return integer token");
-        return Token::IntegerToken {
+
+        Token::IntegerToken {
             value: (number as i32),
-        };
+        }
     }
 
     fn read_identifier_token(&mut self) -> Token {
         while self.current.is_alphabetic() {
             self.read_next();
         }
-        return Token::IdentifierToken {
+
+        Token::IdentifierToken {
             name: "empty identifier",
-        };
+        }
     }
 
     fn read_string_token(&mut self) -> Token {
@@ -112,9 +114,10 @@ impl Lexer {
             self.diagnostics.report("non-terminated string");
             return Token::StaticToken { tag: Tag::End };
         }
-        return Token::StringToken {
+
+        Token::StringToken {
             value: name_or_identifier,
-        };
+        }
     }
 
     fn increment_position(&mut self) {
@@ -278,7 +281,7 @@ mod tests {
         match actual {
             Token::IdentifierToken { name } => assert_eq!(expected_identifier, name),
             _ => (), // useless
-        }
+        };
     }
 
     fn assert_integer_token(expected_value: i32, actual: Token) {

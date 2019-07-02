@@ -4,7 +4,7 @@ pub struct Diagnostics {
 
 impl Diagnostics {
     pub fn make() -> Diagnostics {
-        return Diagnostics { errors: Vec::new() };
+        Diagnostics { errors: Vec::new() }
     }
 
     pub fn report(&mut self, error: &'static str) {
@@ -12,7 +12,7 @@ impl Diagnostics {
     }
 
     pub fn has_no_errors(&self) -> bool {
-        return self.errors.is_empty();
+        self.errors.is_empty()
     }
 }
 

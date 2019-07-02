@@ -10,38 +10,39 @@ pub enum Token {
 
 impl Token {
     pub fn to_string(&self) -> &'static str {
-        return match self {
-            Token::IdentifierToken { name } => "IdentifierToken",
-            Token::IntegerToken { value } => "IntegerToken",
-            Token::StaticToken { tag } => "StaticToken",
-            Token::StringToken { value } => "StringToken",
-        };
+        match self {
+            Token::IdentifierToken { name: _ } => "IdentifierToken",
+            Token::IntegerToken { value: _ } => "IntegerToken",
+            Token::StaticToken { tag: _ } => "StaticToken",
+            Token::StringToken { value: _ } => "StringToken",
+        }
     }
 
     pub fn is_identifier(&self) -> bool {
-        return match self {
-            Token::IdentifierToken { name } => true,
+        match self {
+            Token::IdentifierToken { name: _ } => true,
             _ => false,
-        };
+        }
     }
 
     pub fn is_integer(&self) -> bool {
-        return match self {
-            Token::IntegerToken { value } => true,
+        match self {
+            Token::IntegerToken { value: _ } => true,
             _ => false,
-        };
+        }
     }
 
     pub fn is_static(&self) -> bool {
-        return match self {
-            Token::StaticToken { tag } => true,
+        match self {
+            Token::StaticToken { tag: _ } => true,
             _ => false,
-        };
+        }
     }
+
     pub fn is_string(&self) -> bool {
-        return match self {
-            Token::StringToken { value } => true,
+        match self {
+            Token::StringToken { value: _ } => true,
             _ => false,
-        };
+        }
     }
 }
