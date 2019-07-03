@@ -56,36 +56,37 @@ impl Lexer {
             '/' => {
                 println!("/");
                 self.read_next();
-                return match self.current {
+                match self.current {
                     '/' => self.skip_line_comment(),
                     '*' => self.skip_block_comment(),
                     _ => Token::StaticToken { tag: Tag::Divide },
-                };
+                }
             }
             '|' => {
                 self.read_next();
                 if self.end || self.current != '|' {
                     self.diagnostics.report("must be ||");
-                    return Token::StaticToken { tag: Tag::End };
+                    Token::StaticToken { tag: Tag::End }
+                } else {
+                    Token::StaticToken { tag: Tag::Or }
                 }
-                return Token::StaticToken { tag: Tag::Or };
             }
             '{' => {
                 self.read_next();
-                return Token::StaticToken {
+                Token::StaticToken {
                     tag: Tag::OpenBrace,
-                };
+                }
             }
             '}' => {
                 self.read_next();
-                return Token::StaticToken {
+                Token::StaticToken {
                     tag: Tag::CloseBrace,
-                };
+                }
             }
             _ => {
                 println!("static token");
                 self.read_next();
-                return Token::StaticToken { tag: Tag::End };
+                Token::StaticToken { tag: Tag::End }
             }
         }
     }
