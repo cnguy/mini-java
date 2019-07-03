@@ -49,9 +49,10 @@ impl Lexer {
                 self.read_next();
                 if self.end || self.current != '&' {
                     self.diagnostics.report("must be &&");
-                    return Token::StaticToken { tag: Tag::End };
+                    Token::StaticToken { tag: Tag::End }
+                } else {
+                    Token::StaticToken { tag: Tag::And }
                 }
-                return Token::StaticToken { tag: Tag::And };
             }
             '/' => {
                 println!("/");
@@ -81,6 +82,44 @@ impl Lexer {
                 self.read_next();
                 Token::StaticToken {
                     tag: Tag::CloseBrace,
+                }
+            }
+            '[' => {
+                self.read_next();
+                Token::StaticToken {
+                    tag: Tag::OpenBracket,
+                }
+            }
+            ']' => {
+                self.read_next();
+                Token::StaticToken {
+                    tag: Tag::CloseBracket,
+                }
+            }
+            '(' => {
+                self.read_next();
+                Token::StaticToken {
+                    tag: Tag::OpenParenthesis,
+                }
+            }
+            ')' => {
+                self.read_next();
+                Token::StaticToken {
+                    tag: Tag::CloseParenthesis,
+                }
+            }
+            ',' => {
+                self.read_next();
+                Token::StaticToken { tag: Tag::Comma }
+            }
+            '.' => {
+                self.read_next();
+                Token::StaticToken { tag: Tag::Period }
+            }
+            ';' => {
+                self.read_next();
+                Token::StaticToken {
+                    tag: Tag::Semicolon,
                 }
             }
             _ => {
@@ -124,7 +163,7 @@ impl Lexer {
     fn read_identifier_token(&mut self) -> Token {
         let mut name_or_identifier = String::new();
 
-        while !self.end && self.current.is_alphabetic() {
+        while !self.end && self.current.is_alphanumeric() {
             name_or_identifier.push(self.current);
             self.read_next();
         }
@@ -140,24 +179,33 @@ impl Lexer {
     }
 
     fn read_string_token(&mut self) -> Token {
-        let mut value = String::new();
         self.read_next(); // Get past the current ".
+
+        let mut value = String::new();
+
         while !self.end && self.current != '"' {
             value.push(self.current);
             self.read_next();
         }
+
         if self.current != '"' {
             self.diagnostics.report("non-terminated string");
             return Token::StaticToken { tag: Tag::End };
         }
 
+        self.read_next();
+
         Token::StringToken { value }
     }
 
     fn skip_line_comment(&mut self) -> Token {
-        while !self.end && (self.current != '\n' || self.current != '\r') {
+        self.read_next();
+
+        while !self.end && (self.current != '\n' && self.current != '\r') {
             self.read_next();
         }
+
+        self.read_next();
 
         self.next()
     }
@@ -337,6 +385,8 @@ mod tests {
         assert_static_token(Tag::CloseBrace, lexer.next());
         assert_static_token(Tag::OpenBracket, lexer.next());
         assert_static_token(Tag::CloseBracket, lexer.next());
+        assert_static_token(Tag::OpenParenthesis, lexer.next());
+        assert_static_token(Tag::CloseParenthesis, lexer.next());
         assert_static_token(Tag::Comma, lexer.next());
         assert_static_token(Tag::Period, lexer.next());
         assert_static_token(Tag::Semicolon, lexer.next());
@@ -350,6 +400,7 @@ mod tests {
         assert_integer_token(45, lexer.next());
         assert_string_token("ABC!", lexer.next());
         assert_integer_token(12, lexer.next());
+        println!("{:?}", lexer.diagnostics.errors);
         assert_identifier_token("abc34", lexer.next());
         assert!(lexer.is_clean());
     }
@@ -373,7 +424,6 @@ mod tests {
     }
 
     fn assert_integer_token(expected_value: i32, actual: Token) {
-        println!("{} {:?}", expected_value, actual);
         assert!(actual.is_integer());
 
         match actual {

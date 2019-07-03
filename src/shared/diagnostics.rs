@@ -1,5 +1,5 @@
 pub struct Diagnostics {
-    errors: Vec<&'static str>, // static str to keep it simple
+    pub errors: Vec<&'static str>, // static str to keep it simple
 }
 
 impl Diagnostics {
