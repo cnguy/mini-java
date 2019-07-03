@@ -2,6 +2,7 @@ pub struct Diagnostics {
     pub errors: Vec<&'static str>, // static str to keep it simple
 }
 
+#[allow(dead_code)]
 impl Diagnostics {
     pub fn make() -> Diagnostics {
         Diagnostics { errors: Vec::new() }

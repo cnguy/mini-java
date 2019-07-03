@@ -1,4 +1,5 @@
 #[derive(Clone, Copy, Debug, PartialEq)]
+#[allow(dead_code)]
 pub enum Tag {
     // specials
     End,
@@ -39,6 +40,7 @@ pub enum Tag {
     Semicolon,
 }
 
+#[allow(dead_code)]
 impl Tag {
     pub fn is_keyword_from_string(identifier: &String) -> bool {
         match identifier.as_ref() {
@@ -69,7 +71,6 @@ impl Tag {
     }
 
     // is_keyword documents clearly what's a keyword. :)
-    #[warn(unused_code)]
     pub fn is_keyword(&self) -> bool {
         match self {
             Tag::Class => true,

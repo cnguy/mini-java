@@ -8,6 +8,7 @@ pub enum Token {
     StringToken { value: String },
 }
 
+#[allow(dead_code)]
 impl Token {
     pub fn to_string(&self) -> &'static str {
         match self {

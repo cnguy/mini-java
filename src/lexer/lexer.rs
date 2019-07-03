@@ -3,6 +3,7 @@ use crate::shared::diagnostics::Diagnostics;
 use crate::lexer::tokens::tag::Tag;
 use crate::lexer::tokens::token::Token;
 
+#[allow(dead_code)]
 pub struct Lexer {
     characters: Vec<char>,
     position: u32,
@@ -11,6 +12,7 @@ pub struct Lexer {
     diagnostics: Diagnostics,
 }
 
+#[allow(dead_code)]
 impl Lexer {
     pub fn make(source: &'static str, diagnostics: Diagnostics) -> Lexer {
         let characters = source.chars().collect();
