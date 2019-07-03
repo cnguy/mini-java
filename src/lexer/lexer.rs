@@ -36,75 +36,58 @@ impl Lexer {
     }
 
     pub fn next(&mut self) -> Token {
-        loop {
-            self.skip_blanks();
+        self.skip_blanks();
 
-            println!("current character: {}", self.current);
+        println!("current character: {}", self.current);
 
-            if self.end {
-                println!("done");
-                return Token::StaticToken { tag: Tag::End };
-            }
-
-            if self.current.is_digit(10) {
-                return self.read_integer_token();
-            }
-
-            if self.current.is_alphabetic() {
-                return self.read_identifier_token();
-            }
-
-            if self.current == '"' {
-                return self.read_string_token();
-            }
-
-            match self.current {
-                '&' => {
-                    self.read_next();
-                    if self.end || self.current != '&' {
-                        self.diagnostics.report("must be &&");
-                        return Token::StaticToken { tag: Tag::End };
-                    }
-                    return Token::StaticToken { tag: Tag::And };
-                }
-                '/' => {
-                    println!("/");
-                    self.read_next();
-                    return match self.current {
-                        '/' => self.skip_line_comment(),
-                        '*' => self.skip_block_comment(),
-                        _ => Token::StaticToken { tag: Tag::Divide },
-                    };
-                }
-                '|' => {
-                    self.read_next();
-                    if self.end || self.current != '|' {
-                        self.diagnostics.report("must be ||");
-                        return Token::StaticToken { tag: Tag::End };
-                    }
-                    return Token::StaticToken { tag: Tag::Or };
-                }
-                '{' => {
-                    self.read_next();
-                    return Token::StaticToken {
-                        tag: Tag::OpenBrace,
-                    };
-                }
-                '}' => {
-                    self.read_next();
-                    return Token::StaticToken {
-                        tag: Tag::CloseBrace,
-                    };
-                }
-                _ => {
-                    println!("static token");
-                    self.read_next();
+        match self.current {
+            _ if self.end => Token::StaticToken { tag: Tag::End },
+            _ if self.current.is_digit(10) => self.read_integer_token(),
+            _ if self.current.is_alphabetic() => self.read_identifier_token(),
+            _ if self.current == '"' => self.read_string_token(),
+            '&' => {
+                self.read_next();
+                if self.end || self.current != '&' {
+                    self.diagnostics.report("must be &&");
                     return Token::StaticToken { tag: Tag::End };
                 }
-            };
+                return Token::StaticToken { tag: Tag::And };
+            }
+            '/' => {
+                println!("/");
+                self.read_next();
+                return match self.current {
+                    '/' => self.skip_line_comment(),
+                    '*' => self.skip_block_comment(),
+                    _ => Token::StaticToken { tag: Tag::Divide },
+                };
+            }
+            '|' => {
+                self.read_next();
+                if self.end || self.current != '|' {
+                    self.diagnostics.report("must be ||");
+                    return Token::StaticToken { tag: Tag::End };
+                }
+                return Token::StaticToken { tag: Tag::Or };
+            }
+            '{' => {
+                self.read_next();
+                return Token::StaticToken {
+                    tag: Tag::OpenBrace,
+                };
+            }
+            '}' => {
+                self.read_next();
+                return Token::StaticToken {
+                    tag: Tag::CloseBrace,
+                };
+            }
+            _ => {
+                println!("static token");
+                self.read_next();
+                return Token::StaticToken { tag: Tag::End };
+            }
         }
-
-        // Token::StaticToken { tag: Tag::End };
     }
 
     fn read_next(&mut self) {
