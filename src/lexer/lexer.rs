@@ -53,16 +53,37 @@ impl Lexer {
                     self.diagnostics.report("must be &&");
                     Token::StaticToken { tag: Tag::End }
                 } else {
+                    println!("return and");
+                    self.read_next();
                     Token::StaticToken { tag: Tag::And }
                 }
             }
+            '=' => {
+                self.read_next();
+                if self.current == '=' {
+                    self.read_next();
+                    Token::StaticToken { tag: Tag::Equal }
+                } else {
+                    self.read_next();
+                    Token::StaticToken { tag: Tag::Assign }
+                }
+            }
             '/' => {
-                println!("/");
                 self.read_next();
                 match self.current {
                     '/' => self.skip_line_comment(),
                     '*' => self.skip_block_comment(),
                     _ => Token::StaticToken { tag: Tag::Divide },
+                }
+            }
+            '!' => {
+                self.read_next();
+                if self.current == '=' {
+                    self.read_next();
+                    Token::StaticToken { tag: Tag::Unequal }
+                } else {
+                    self.read_next();
+                    Token::StaticToken { tag: Tag::Not }
                 }
             }
             '|' => {
@@ -71,8 +92,49 @@ impl Lexer {
                     self.diagnostics.report("must be ||");
                     Token::StaticToken { tag: Tag::End }
                 } else {
+                    self.read_next();
                     Token::StaticToken { tag: Tag::Or }
                 }
+            }
+            '>' => {
+                self.read_next();
+                if self.current == '=' {
+                    self.read_next();
+                    Token::StaticToken {
+                        tag: Tag::GreaterEqual,
+                    }
+                } else {
+                    self.read_next();
+                    Token::StaticToken { tag: Tag::Greater }
+                }
+            }
+            '<' => {
+                self.read_next();
+                if self.current == '=' {
+                    self.read_next();
+                    Token::StaticToken {
+                        tag: Tag::LessEqual,
+                    }
+                } else {
+                    self.read_next();
+                    Token::StaticToken { tag: Tag::Less }
+                }
+            }
+            '-' => {
+                self.read_next();
+                Token::StaticToken { tag: Tag::Minus }
+            }
+            '%' => {
+                self.read_next();
+                Token::StaticToken { tag: Tag::Modulo }
+            }
+            '+' => {
+                self.read_next();
+                Token::StaticToken { tag: Tag::Plus }
+            }
+            '*' => {
+                self.read_next();
+                Token::StaticToken { tag: Tag::Times }
             }
             '{' => {
                 self.read_next();
@@ -411,7 +473,10 @@ mod tests {
         assert!(actual.is_static());
 
         match actual {
-            Token::StaticToken { tag } => assert!(tag == expected_tag),
+            Token::StaticToken { tag } => {
+                println!("{:?} {:?}", tag, expected_tag);
+                assert!(tag == expected_tag);
+            }
             _ => (), // useless
         };
     }
