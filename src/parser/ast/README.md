@@ -1,0 +1,31 @@
+- [ ] ArrayCreationNode
+- [ ] ArrayTypeNode
+- [ ] AssignmentNode
+- [ ] BasicDesignatorNode
+- [ ] BasicTypeNode
+- [x] BinaryExpressionNode
+- [ ] CallStatementNode
+- [ ] ClassNode
+- [ ] DesignatorNode
+- [ ] ElementAccessNode
+- [ ] ExpressionNode
+- [ ] IfStatementNode
+- [x] IntegerLiteralNode
+- [ ] LocalDeclarationNode
+- [ ] MemberAccessNode
+- [ ] MethodCallNode
+- [ ] MethodNode
+- [x] Node (implemented in Visitor. no inheritance here, just composition via traits)
+- [ ] ObjectCreationNode
+- [ ] Operator
+- [ ] ProgramNode
+- [ ] ReturnStatementNode
+- [ ] StatementBlockNode
+- [ ] StatementNode
+- [ ] StringLiteralNode
+- [ ] TypeCastNode
+- [ ] TypeNode
+- [x] UnaryExpressionNode
+- [ ] VariableNode
+- [x] Visitor
+- [ ] WhileStatementNode
