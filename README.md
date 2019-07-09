@@ -20,8 +20,10 @@ class Test {
 
 ## Progress:
 
-* [ ] **Lexer** (in-progress)
-* [ ] Parser (Recursive Descent, LL(1))
+[x] does not exactly mean done. It just means I consider it done. There may still be bugs (e.g. no overflow is accounted for in Lexer right now)
+
+* [x] Lexer
+* [ ] **Parser (Recursive Descent, LL(1))** (in-progress)
 * [ ] Code Generator
 * [ ] Semantic Checker
 * [ ] Garbage Collection

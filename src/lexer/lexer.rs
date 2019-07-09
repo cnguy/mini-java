@@ -473,10 +473,7 @@ mod tests {
         assert!(actual.is_static());
 
         match actual {
-            Token::StaticToken { tag } => {
-                println!("{:?} {:?}", tag, expected_tag);
-                assert!(tag == expected_tag);
-            }
+            Token::StaticToken { tag } => assert!(tag == expected_tag),
             _ => (), // useless
         };
     }
