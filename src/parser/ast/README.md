@@ -20,12 +20,12 @@
 - [ ] Operator
 - [ ] ProgramNode
 - [ ] ReturnStatementNode
-- [ ] StatementBlockNode
-- [ ] StatementNode
+- [x] StatementBlockNode
+- [x] StatementNode
 - [ ] StringLiteralNode
 - [ ] TypeCastNode
 - [ ] TypeNode
 - [x] UnaryExpressionNode
 - [ ] VariableNode
 - [x] Visitor
-- [ ] WhileStatementNode
+- [x] WhileStatementNode

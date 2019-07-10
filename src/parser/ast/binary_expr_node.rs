@@ -1,10 +1,13 @@
 use crate::parser::ast::visitor::Visitor;
+use crate::parser::ast::expression_node::ExpressionNode;
 
 #[allow(dead_code)]
 struct BinaryExprNode<'a> {
-    pub left: &'a Visitor,
-    pub right: &'a Visitor,
+    pub left: &'a ExpressionNode,
+    pub right: &'a ExpressionNode,
 }
+
+impl<'a> ExpressionNode for BinaryExprNode<'a> {}
 
 impl<'a> Visitor for BinaryExprNode<'a> {
     fn accept(&self, visitor: &Visitor) {

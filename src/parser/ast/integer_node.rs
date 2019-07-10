@@ -1,9 +1,12 @@
 use crate::parser::ast::visitor::Visitor;
+use crate::parser::ast::expression_node::ExpressionNode;
 
 #[allow(dead_code)]
-struct IntegerNode {
+pub struct IntegerNode {
     pub value: i64,
 }
+
+impl ExpressionNode for IntegerNode {}
 
 impl Visitor for IntegerNode {
     fn accept(&self, visitor: &Visitor) {
